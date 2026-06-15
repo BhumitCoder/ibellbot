@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: iball-ai-telegram-bot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false          # You enter this manually in Render dashboard
+      - key: SARVAM_API_KEY
+        sync: false          # You enter this manually in Render dashboard
+      - key: WEBHOOK_URL
+        sync: false          # Set to your Render service URL after first deploy
