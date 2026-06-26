@@ -43,27 +43,45 @@ if (!TELEGRAM_TOKEN || !SARVAM_API_KEY) {
 let db, bucket;
 try {
   const svcRaw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!svcRaw) throw new Error("FIREBASE_SERVICE_ACCOUNT env var not set");
+  if (!svcRaw) throw new Error("FIREBASE_SERVICE_ACCOUNT env var is empty or not set");
 
-  // Render (and most cloud platforms) escape newlines in env vars as \\n
-  // The private_key field needs real \n characters to work
-  const svcJson = JSON.parse(svcRaw);
-  if (svcJson.private_key) {
-    svcJson.private_key = svcJson.private_key.replace(/\\n/g, "\n");
+  // Step 1: clean common copy-paste artifacts then parse JSON
+  let svcJson;
+  try {
+    const cleaned = svcRaw
+      .trim()
+      .replace(/^﻿/, "")        // strip BOM (Windows UTF-8 files)
+      .replace(/^["']|["']$/g, "")  // strip surrounding quotes if Render wrapped it
+      .replace(/[“”]/g, '"') // replace smart/curly double-quotes
+      .replace(/[‘’]/g, "'"); // replace smart single-quotes
+    svcJson = JSON.parse(cleaned);
+  } catch (parseErr) {
+    throw new Error(`JSON parse failed (${parseErr.message}) — see fix instructions below`);
   }
 
+  // Step 2: validate required fields
+  if (!svcJson.client_email) throw new Error("Service account JSON missing 'client_email' field");
+  if (!svcJson.private_key)  throw new Error("Service account JSON missing 'private_key' field");
+  console.log(`Firebase: using service account → ${svcJson.client_email}`);
+
+  // Step 3: fix escaped newlines (Render stores \n as \\n in env vars)
+  svcJson.private_key = svcJson.private_key.replace(/\\n/g, "\n");
+
+  // Step 4: init app
   const fbApp = getApps().length
     ? getApps()[0]
     : initializeApp({
         credential   : cert(svcJson),
         storageBucket: "ibellmobiles-123.firebasestorage.app",
       });
+
   db     = getFirestore(fbApp, "ibelldatabasefortelegramboat");
   bucket = getStorage(fbApp).bucket();
-  console.log("Firebase connected ✓");
+  console.log("Firebase connected ✓  db=ibelldatabasefortelegramboat");
 } catch (e) {
-  console.error("Firebase init error:", e.message);
-  console.warn("Set FIREBASE_SERVICE_ACCOUNT in Render environment variables.");
+  console.error("═══ FIREBASE INIT FAILED ═══");
+  console.error(e.message);
+  console.error("════════════════════════════");
 }
 
 // ── Multer ─────────────────────────────────────────────────────────────────────
