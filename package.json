@@ -1,7 +1,7 @@
 {
-  "name": "iball-ai-telegram-bot",
-  "version": "1.0.0",
-  "description": "iBall AI Telegram Bot powered by Sarvam AI - supports English, Hindi, Gujarati",
+  "name": "ibell-ai-telegram-bot",
+  "version": "2.0.0",
+  "description": "iBell Mobiles — Telegram bot + Admin panel powered by Sarvam AI & Firebase",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,7 +10,10 @@
   "dependencies": {
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "firebase-admin": "^12.0.0",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

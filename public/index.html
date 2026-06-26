@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>iBell Admin Panel</title>
+<style>
+:root {
+  --primary:#2563EB; --primary-dark:#1D4ED8;
+  --success:#059669; --danger:#DC2626; --warning:#D97706; --orange:#EA580C;
+  --bg:#F1F5F9; --card:#fff; --border:#E2E8F0;
+  --text:#1E293B; --muted:#64748B; --light:#F8FAFC;
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* ── Login ─────────────────────────────────────────────────────────────────── */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-card{background:var(--card);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:var(--shadow-lg);text-align:center}
+.login-logo{font-size:2.5rem;margin-bottom:.5rem}
+.login-card h1{font-size:1.6rem;font-weight:700;color:var(--primary);margin-bottom:.25rem}
+.login-card p{color:var(--muted);font-size:.9rem;margin-bottom:2rem}
+.form-group{margin-bottom:1rem;text-align:left}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.65rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;color:var(--text);outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary)}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.25rem;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{filter:brightness(.9)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{filter:brightness(.9)}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
+.btn-sm{padding:.4rem .75rem;font-size:.8rem}
+.btn-block{width:100%;justify-content:center;padding:.8rem}
+#loginError{color:var(--danger);font-size:.85rem;margin-top:.75rem;min-height:1.2em}
+/* ── Dashboard ─────────────────────────────────────────────────────────────── */
+#dashboard{display:none;min-height:100vh}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
+.header-left{display:flex;align-items:center;gap:.75rem}
+.header-logo{font-size:1.5rem}
+.header-title{font-size:1.1rem;font-weight:700;color:var(--primary)}
+.header-sub{font-size:.75rem;color:var(--muted);display:none}
+@media(min-width:480px){.header-sub{display:block}}
+.main{max-width:1200px;margin:0 auto;padding:1.5rem 1rem}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(min-width:640px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:var(--card);border-radius:12px;padding:1.25rem;box-shadow:var(--shadow);border-left:4px solid transparent}
+.stat-card.blue{border-color:var(--primary)}.stat-card.green{border-color:var(--success)}
+.stat-card.orange{border-color:var(--orange)}.stat-card.purple{border-color:#7C3AED}
+.stat-icon{font-size:1.5rem;margin-bottom:.5rem}
+.stat-val{font-size:1.8rem;font-weight:800;line-height:1}
+.stat-lbl{font-size:.78rem;color:var(--muted);margin-top:.25rem;font-weight:500}
+/* Tabs */
+.tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;border-bottom:2px solid var(--border);padding-bottom:0}
+.tab-btn{padding:.6rem 1.25rem;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem}
+.toolbar h2{font-size:1.1rem;font-weight:700}
+/* Product Cards */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem}
+.product-card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .2s}
+.product-card:hover{box-shadow:var(--shadow-lg)}
+.product-img{width:100%;height:200px;object-fit:cover;background:#F1F5F9;display:block}
+.product-img-placeholder{width:100%;height:200px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.product-body{padding:1rem}
+.product-name{font-size:1rem;font-weight:700;margin-bottom:.35rem}
+.product-specs{font-size:.82rem;color:var(--muted);margin-bottom:.5rem}
+.product-price{font-size:1.1rem;font-weight:800;color:var(--primary);margin-bottom:.4rem}
+.product-price .original{font-size:.85rem;color:var(--muted);text-decoration:line-through;font-weight:400;margin-right:.4rem}
+.product-price .sale{color:var(--danger)}
+.product-meta{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.85rem}
+.badge{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-green{background:#D1FAE5;color:#065F46}.badge-blue{background:#DBEAFE;color:#1E40AF}
+.badge-orange{background:#FEF3C7;color:#92400E}.badge-gray{background:#F1F5F9;color:#475569}
+.badge-red{background:#FEE2E2;color:#991B1B}
+.product-actions{display:flex;gap:.5rem}
+/* Leads Table */
+.leads-table-wrap{overflow-x:auto;border-radius:12px;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;background:var(--card);font-size:.85rem}
+th{background:#F8FAFC;padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+td{padding:.75rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+.lead-name{font-weight:600}
+.lead-phone a{color:var(--primary);text-decoration:none;font-weight:600}
+.lead-actions{display:flex;gap:.4rem;flex-wrap:nowrap}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--card);border-radius:16px;width:100%;max-width:560px;padding:1.75rem;box-shadow:var(--shadow-lg);margin:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h2{font-size:1.15rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1;padding:.2rem}
+.modal-close:hover{color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+.form-check{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;cursor:pointer}
+.form-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+.form-check span{font-size:.9rem;font-weight:500}
+.modal-footer{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+/* Image upload */
+.img-upload-area{border:2px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s;position:relative}
+.img-upload-area:hover{border-color:var(--primary)}
+.img-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload-icon{font-size:2rem;margin-bottom:.5rem}
+.img-upload-text{font-size:.85rem;color:var(--muted)}
+#imagePreview{width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:.75rem;display:none}
+/* Toast */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1E293B;color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:.88rem;font-weight:500;box-shadow:var(--shadow-lg);transform:translateY(100px);opacity:0;transition:all .3s;z-index:999;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{background:var(--success)}
+#toast.error{background:var(--danger)}
+/* Empty states */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-icon{font-size:3rem;margin-bottom:.75rem}
+.empty p{font-size:.95rem}
+/* Spinner */
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:2rem auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Conditional fields */
+.cond-field{display:none}
+.cond-field.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">📱</div>
+    <h1>iBell Admin</h1>
+    <p>Mobile Store Management Panel</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">Login →</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ════════════ DASHBOARD ════════════ -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <span class="header-logo">📱</span>
+      <div>
+        <div class="header-title">iBell Admin</div>
+        <div class="header-sub">Mobile Store Panel</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+  </header>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">📦</div>
+        <div class="stat-val" id="statTotal">—</div>
+        <div class="stat-lbl">Total Products</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="statAvail">—</div>
+        <div class="stat-lbl">Available</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-val" id="statSale">—</div>
+        <div class="stat-lbl">On Sale / Sold</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">👥</div>
+        <div class="stat-val" id="statLeads">—</div>
+        <div class="stat-lbl">Leads</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabProducts" onclick="switchTab('products')">📱 Products</button>
+      <button class="tab-btn" id="tabLeads" onclick="switchTab('leads')">👥 Leads</button>
+    </div>
+
+    <!-- Products Section -->
+    <div id="sectionProducts">
+      <div class="toolbar">
+        <h2>Products</h2>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Product</button>
+      </div>
+      <div id="productsList"></div>
+    </div>
+
+    <!-- Leads Section -->
+    <div id="sectionLeads" style="display:none">
+      <div class="toolbar">
+        <h2>Customer Leads</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadData()">↻ Refresh</button>
+      </div>
+      <div id="leadsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ PRODUCT MODAL ════════════ -->
+<div class="overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Product</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <form id="productForm" onsubmit="saveProduct(event)">
+      <input type="hidden" id="editingId" value="" />
+
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input type="text" id="fName" placeholder="e.g. OnePlus 12R" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Storage</label>
+          <input type="text" id="fStorage" placeholder="e.g. 256 GB" />
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" id="fColor" placeholder="e.g. Black" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select id="fStatus" onchange="toggleConditional()">
+          <option value="instock">✅ In Stock</option>
+          <option value="sale">🔥 On Sale</option>
+          <option value="sold">❌ Sold</option>
+        </select>
+      </div>
+
+      <label class="form-check">
+        <input type="checkbox" id="fWarranty" onchange="toggleConditional()" />
+        <span>Has Warranty</span>
+      </label>
+      <div class="form-group cond-field" id="cfWarrantyDetails" style="margin-top:.75rem">
+        <label>Warranty Details</label>
+        <input type="text" id="fWarrantyDetails" placeholder="e.g. 1 year brand warranty" />
+      </div>
+
+      <label class="form-check" style="margin-top:.5rem">
+        <input type="checkbox" id="fIsIphone" onchange="toggleConditional()" />
+        <span>This is an iPhone</span>
+      </label>
+      <div class="form-group cond-field" id="cfBattery" style="margin-top:.75rem">
+        <label>Battery Health</label>
+        <input type="text" id="fBattery" placeholder="e.g. 87%" />
+      </div>
+
+      <div class="form-group" style="margin-top:.75rem">
+        <label>Description</label>
+        <textarea id="fDescription" placeholder="Optional details about condition, accessories included, etc."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Product Image</label>
+        <div class="img-upload-area">
+          <input type="file" id="fImage" accept="image/*" onchange="previewImage(event)" />
+          <div class="img-upload-icon">📷</div>
+          <div class="img-upload-text">Click to upload image (max 5MB)</div>
+        </div>
+        <img id="imagePreview" alt="Preview" />
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let products = [];
+let leads    = [];
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+(async function init() {
+  try {
+    const r = await fetch("/api/auth/check");
+    const d = await r.json();
+    if (d.isAdmin) showDashboard();
+    else showLogin();
+  } catch { showLogin(); }
+})();
+
+// Keyboard: login on Enter
+document.getElementById("loginPass").addEventListener("keydown", e => {
+  if (e.key === "Enter") doLogin();
+});
+
+// ── Auth ───────────────────────────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById("loginPage").style.display = "flex";
+  document.getElementById("dashboard").style.display  = "none";
+}
+
+function showDashboard() {
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("dashboard").style.display  = "block";
+  loadData();
+}
+
+async function doLogin() {
+  const username = document.getElementById("loginUser").value.trim();
+  const password = document.getElementById("loginPass").value;
+  const errEl    = document.getElementById("loginError");
+  errEl.textContent = "";
+  if (!username || !password) { errEl.textContent = "Enter username and password."; return; }
+  try {
+    const r = await fetch("/api/auth/login", {
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify({ username, password }),
+    });
+    if (r.ok) showDashboard();
+    else { const d = await r.json(); errEl.textContent = d.error || "Login failed."; }
+  } catch { errEl.textContent = "Connection error. Try again."; }
+}
+
+async function doLogout() {
+  await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+  showLogin();
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById("sectionProducts").style.display = tab === "products" ? "block" : "none";
+  document.getElementById("sectionLeads").style.display    = tab === "leads"    ? "block" : "none";
+  document.getElementById("tabProducts").classList.toggle("active", tab === "products");
+  document.getElementById("tabLeads").classList.toggle("active", tab === "leads");
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [pRes, lRes] = await Promise.all([
+      fetch("/api/products"),
+      fetch("/api/leads"),
+    ]);
+    if (pRes.ok) products = await pRes.json(); else products = [];
+    if (lRes.ok) leads    = await lRes.json(); else leads    = [];
+  } catch { products = []; leads = []; }
+  renderStats();
+  renderProducts();
+  renderLeads();
+}
+
+function renderStats() {
+  const avail    = products.filter(p => p.status !== "sold").length;
+  const onSale   = products.filter(p => p.status === "sale").length;
+  const newLeads = leads.filter(l => l.status === "new").length;
+  document.getElementById("statTotal").textContent = products.length;
+  document.getElementById("statAvail").textContent = avail;
+  document.getElementById("statSale").textContent  = onSale;
+  document.getElementById("statLeads").textContent =
+    leads.length + (newLeads ? ` (${newLeads} new)` : "");
+}
+
+// ── Products ───────────────────────────────────────────────────────────────────
+function renderProducts() {
+  const el = document.getElementById("productsList");
+  if (!products.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📱</div><p>No products yet. Click "Add Product" to get started.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="products-grid">${products.map(productCard).join("")}</div>`;
+}
+
+function productCard(p) {
+  const imgHtml = p.imageUrl
+    ? `<img src="${esc(p.imageUrl)}" class="product-img" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'>📱</div>'" />`
+    : `<div class="product-img-placeholder">📱</div>`;
+
+  const statusBadge = {
+    instock: `<span class="badge badge-green">✅ In Stock</span>`,
+    sale   : `<span class="badge badge-orange">🔥 On Sale</span>`,
+    sold   : `<span class="badge badge-gray">❌ Sold</span>`,
+  }[p.status] || "";
+
+  const warrantyBadge = p.warranty
+    ? `<span class="badge badge-blue">🛡️ ${p.warrantyDetails || "Warranty"}</span>`
+    : "";
+
+  const battBadge = p.isIphone && p.batteryHealth
+    ? `<span class="badge badge-green">🔋 ${p.batteryHealth}</span>`
+    : "";
+
+  return `
+  <div class="product-card">
+    ${imgHtml}
+    <div class="product-body">
+      <div class="product-name">${esc(p.name)}</div>
+      <div class="product-specs">${[p.storage, p.color].filter(Boolean).join(" • ")}</div>
+      <div class="product-meta">
+        ${statusBadge}${warrantyBadge}${battBadge}
+      </div>
+      ${p.description ? `<div style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem;line-height:1.4">${esc(p.description)}</div>` : ""}
+      <div class="product-actions">
+        <button class="btn btn-ghost btn-sm" onclick='openEditModal(${JSON.stringify(p)})'>✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Leads ──────────────────────────────────────────────────────────────────────
+function renderLeads() {
+  const el = document.getElementById("leadsList");
+  if (!leads.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><p>No leads yet. Customers who contact via the bot will appear here.</p></div>`;
+    return;
+  }
+  el.innerHTML = `
+  <div class="leads-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Name</th><th>Phone</th><th>Interested In</th>
+          <th>Telegram</th><th>Date</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>${leads.map((l, i) => leadRow(l, i + 1)).join("")}</tbody>
+    </table>
+  </div>`;
+}
+
+function leadRow(l, n) {
+  const dt    = l.createdAt ? new Date(l.createdAt).toLocaleString("en-IN", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+  const badge = l.status === "contacted"
+    ? `<span class="badge badge-green">Contacted</span>`
+    : `<span class="badge badge-blue">New</span>`;
+  const uname = l.telegramUsername ? `@${esc(l.telegramUsername)}` : esc(l.telegramName || "—");
+  return `
+  <tr>
+    <td style="color:var(--muted)">${n}</td>
+    <td class="lead-name">${esc(l.name)}</td>
+    <td class="lead-phone"><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></td>
+    <td>${esc(l.interestedIn || "—")}</td>
+    <td style="color:var(--muted);font-size:.8rem">${uname}</td>
+    <td style="color:var(--muted);font-size:.8rem;white-space:nowrap">${dt}</td>
+    <td>${badge}</td>
+    <td>
+      <div class="lead-actions">
+        ${l.status !== "contacted"
+          ? `<button class="btn btn-success btn-sm" onclick="updateLead('${l.id}','contacted')">✓ Contacted</button>`
+          : `<button class="btn btn-ghost btn-sm" onclick="updateLead('${l.id}','new')">↩ Reopen</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+// ── Product CRUD ───────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById("editingId").value = "";
+  document.getElementById("modalTitle").textContent = "Add Product";
+  document.getElementById("productForm").reset();
+  document.getElementById("imagePreview").style.display = "none";
+  toggleConditional();
+  document.getElementById("modalOverlay").classList.add("open");
+}
+
+function openEditModal(p) {
+  document.getElementById("editingId").value  = p.id;
+  document.getElementById("modalTitle").textContent = "Edit Product";
+  document.getElementById("fName").value         = p.name    || "";
+  document.getElementById("fStorage").value      = p.storage || "";
+  document.getElementById("fColor").value        = p.color   || "";
+  document.getElementById("fStatus").value       = p.status  || "instock";
+  document.getElementById("fWarranty").checked   = !!p.warranty;
+  document.getElementById("fWarrantyDetails").value = p.warrantyDetails || "";
+  document.getElementById("fIsIphone").checked   = !!p.isIphone;
+  document.getElementById("fBattery").value      = p.batteryHealth || "";
+  document.getElementById("fDescription").value  = p.description || "";
+  document.getElementById("fImage").value        = "";
+  // Show existing image preview
+  const prev = document.getElementById("imagePreview");
+  if (p.imageUrl) { prev.src = p.imageUrl; prev.style.display = "block"; }
+  else prev.style.display = "none";
+  toggleConditional();
+  document.getElementById("modalOverlay").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById("modalOverlay")) closeModal();
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const id  = document.getElementById("editingId").value;
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true; btn.textContent = "Saving…";
+
+  const fd = new FormData();
+  fd.append("name",            document.getElementById("fName").value.trim());
+  fd.append("storage",         document.getElementById("fStorage").value.trim());
+  fd.append("color",           document.getElementById("fColor").value.trim());
+  fd.append("status",          document.getElementById("fStatus").value);
+  fd.append("warranty",        document.getElementById("fWarranty").checked);
+  fd.append("warrantyDetails", document.getElementById("fWarrantyDetails").value.trim());
+  fd.append("isIphone",        document.getElementById("fIsIphone").checked);
+  fd.append("batteryHealth",   document.getElementById("fBattery").value.trim());
+  fd.append("description",     document.getElementById("fDescription").value.trim());
+  const imgFile = document.getElementById("fImage").files[0];
+  if (imgFile) fd.append("image", imgFile);
+
+  try {
+    const res = await fetch(id ? `/api/products/${id}` : "/api/products", {
+      method: id ? "PUT" : "POST",
+      body  : fd,
+    });
+    if (res.ok) {
+      closeModal();
+      await loadData();
+      toast(id ? "Product updated!" : "Product added!", "success");
+    } else {
+      const d = await res.json();
+      toast(d.error || "Save failed.", "error");
+    }
+  } catch { toast("Network error.", "error"); }
+  finally { btn.disabled = false; btn.textContent = "Save Product"; }
+}
+
+async function deleteProduct(id) {
+  if (!confirm("Delete this product? This cannot be undone.")) return;
+  try {
+    const r = await fetch(`/api/products/${id}`, { method: "DELETE" });
+    if (r.ok) { await loadData(); toast("Product deleted.", "success"); }
+    else toast("Delete failed.", "error");
+  } catch { toast("Network error.", "error"); }
+}
+
+// ── Lead management ────────────────────────────────────────────────────────────
+async function updateLead(id, status) {
+  try {
+    const r = await fetch(`/api/leads/${id}/status`, {
+      method : "PUT",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify({ status }),
+    });
+    if (r.ok) { await loadData(); toast("Lead updated.", "success"); }
+    else toast("Update failed.", "error");
+  } catch { toast("Network error.", "error"); }
+}
+
+async function deleteLead(id) {
+  if (!confirm("Delete this lead?")) return;
+  try {
+    const r = await fetch(`/api/leads/${id}`, { method: "DELETE" });
+    if (r.ok) { await loadData(); toast("Lead deleted.", "success"); }
+    else toast("Delete failed.", "error");
+  } catch { toast("Network error.", "error"); }
+}
+
+// ── Conditional form fields ────────────────────────────────────────────────────
+function toggleConditional() {
+  const warranty = document.getElementById("fWarranty").checked;
+  const isIphone = document.getElementById("fIsIphone").checked;
+  document.getElementById("cfWarrantyDetails").classList.toggle("show", warranty);
+  document.getElementById("cfBattery").classList.toggle("show", isIphone);
+}
+
+// ── Image preview ──────────────────────────────────────────────────────────────
+function previewImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const prev = document.getElementById("imagePreview");
+  const reader = new FileReader();
+  reader.onload = ev => { prev.src = ev.target.result; prev.style.display = "block"; };
+  reader.readAsDataURL(file);
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = "") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className   = "show " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove("show"); }, 3000);
+}
+
+// ── Utils ──────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function fmt(n) {
+  return Number(n).toLocaleString("en-IN");
+}
+</script>
+</body>
+</html>

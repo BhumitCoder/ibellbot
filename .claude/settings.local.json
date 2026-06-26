@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:docs.sarvam.ai)"
+      "WebFetch(domain:docs.sarvam.ai)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\STAFF1\\\\Downloads\\\\ibellbot\\\\public\")",
+      "Bash(node -e \"require\\('./server.js'\\)\")",
+      "Bash(node --check \"c:\\\\Users\\\\STAFF1\\\\Downloads\\\\ibellbot\\\\server.js\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\STAFF1\\Downloads\\ibellbot"
     ]
   }
 }
