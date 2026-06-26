@@ -11,13 +11,19 @@ const { getStorage }                   = require("firebase-admin/storage");
 
 // ── Express ────────────────────────────────────────────────────────────────────
 const app = express();
+app.set("trust proxy", 1); // required for secure cookies behind Render's HTTPS proxy
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret           : process.env.SESSION_SECRET || "ibell-secret-2024",
   resave           : false,
   saveUninitialized: false,
-  cookie           : { maxAge: 8 * 60 * 60 * 1000 },
+  cookie           : {
+    maxAge  : 8 * 60 * 60 * 1000,
+    secure  : !!process.env.WEBHOOK_URL, // true on Render (HTTPS), false in local dev
+    httpOnly: true,
+    sameSite: "lax",
+  },
 }));
 app.use(express.static(path.join(__dirname, "public")));
 
