@@ -38,10 +38,18 @@ let db, bucket;
 try {
   const svcRaw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!svcRaw) throw new Error("FIREBASE_SERVICE_ACCOUNT env var not set");
+
+  // Render (and most cloud platforms) escape newlines in env vars as \\n
+  // The private_key field needs real \n characters to work
+  const svcJson = JSON.parse(svcRaw);
+  if (svcJson.private_key) {
+    svcJson.private_key = svcJson.private_key.replace(/\\n/g, "\n");
+  }
+
   const fbApp = getApps().length
     ? getApps()[0]
     : initializeApp({
-        credential   : cert(JSON.parse(svcRaw)),
+        credential   : cert(svcJson),
         storageBucket: "ibellmobiles-123.firebasestorage.app",
       });
   db     = getFirestore(fbApp, "ibelldatabasefortelegramboat");
@@ -49,7 +57,7 @@ try {
   console.log("Firebase connected ✓");
 } catch (e) {
   console.error("Firebase init error:", e.message);
-  console.warn("Admin panel and product features require FIREBASE_SERVICE_ACCOUNT env var.");
+  console.warn("Set FIREBASE_SERVICE_ACCOUNT in Render environment variables.");
 }
 
 // ── Multer ─────────────────────────────────────────────────────────────────────
